@@ -5,14 +5,14 @@
 #license: GPL3.0
 
 #initialize files
-true> sg-all.txt
-true> sg-used-default.txt
-true> sg-used-ec2.txt
-true> sg-used-eni.txt
-true> sg-used-elb.txt
-true> sg-used-rds.txt
-true> sg-used-lambda.txt
-true> sg-unused-final.txt
+: > sg-used-default.txt
+: > sg-used-ec2.txt
+: > sg-used-eni.txt
+: > sg-used-elb.txt
+: > sg-used-rds.txt
+: > sg-used-rds-vpc.txt
+: > sg-used-lambda.txt
+: > sg-unused-final.txt
 
 printf "\nlist unused security groups in all regions of an AWS account\n"
 
@@ -21,13 +21,12 @@ REGIONS=$(aws ec2 describe-regions | jq --raw-output '.Regions[].RegionName')
 
 printf "\nstep 1: list all security groups "
 for region in $REGIONS; do
-  printf "="
+  printf "=" >&2
   for sg in $(aws ec2 describe-security-groups --region $region | jq --raw-output '.SecurityGroups[].GroupId'); do
-    printf "%s\t%s\n" "$region" "$sg">>sg-all.txt
-    printf "-"
+    printf "%s\t%s\n" "$region" "$sg"
+    printf "-" >&2
   done
-done
-sort sg-all.txt | uniq >sg-all-sorted.txt
+done | sort -u >sg-all-sorted.txt
 wc -l sg-all-sorted.txt
 
 printf "\nstep 2: list default security groups (can't be deleted) "
